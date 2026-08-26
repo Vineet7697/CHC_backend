@@ -17,12 +17,21 @@ const app = express();
 
 const corsOptions = {
   origin: "https://chc-frontend-mauve.vercel.app",
+
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+
   allowedHeaders: ["Content-Type", "Authorization"],
+
+  credentials: false,
+
   optionsSuccessStatus: 204,
 };
 
+// CORS middleware
 app.use(cors(corsOptions));
+
+// Express 5 compatible preflight handler
+app.options(/.*/, cors(corsOptions));
 
 // ======================================================
 // GLOBAL MIDDLEWARE
@@ -54,7 +63,6 @@ app.use("/auth", authRoutes);
 app.use("/patient", patientRoutes);
 app.use("/doctor", doctorRoutes);
 app.use("/clinic", clinicRoutes);
-
 app.use("/admin", adminRoutes);
 
 // ======================================================
