@@ -15,29 +15,32 @@ const app = express();
 // CORS
 // ======================================================
 
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim())
+  : [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "https://chc-frontend-mauve.vercel.app",
+    ];
+
 const corsOptions = {
-  origin: "https://chc-frontend-mauve.vercel.app",
-
+  origin: allowedOrigins,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-
   allowedHeaders: ["Content-Type", "Authorization"],
-
-  credentials: false,
-
-  optionsSuccessStatus: 204,
+  credentials: true,
 };
 
-// CORS middleware
 app.use(cors(corsOptions));
-
-// Express 5 compatible preflight handler
-app.options(/.*/, cors(corsOptions));
 
 // ======================================================
 // GLOBAL MIDDLEWARE
 // ======================================================
 
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -54,6 +57,16 @@ app.get("/", (req, res) => {
   });
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    status: "ok",
+    service: "YoDoctor API",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+  });
+});
+
 // ======================================================
 // API ROUTES
 // ======================================================
@@ -61,8 +74,11 @@ app.get("/", (req, res) => {
 app.use("/auth", authRoutes);
 
 app.use("/patient", patientRoutes);
+
 app.use("/doctor", doctorRoutes);
+
 app.use("/clinic", clinicRoutes);
+
 app.use("/admin", adminRoutes);
 
 // ======================================================
@@ -72,7 +88,7 @@ app.use("/admin", adminRoutes);
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "API endpoint not found",
+    message: `Route ${req.originalUrl} not found`,
   });
 });
 
@@ -81,7 +97,7 @@ app.use((req, res) => {
 // ======================================================
 
 app.use((err, req, res, next) => {
-  console.error(err);
+  console.error("[ERROR]", err);
 
   res.status(err.status || 500).json({
     success: false,
