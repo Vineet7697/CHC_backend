@@ -12,18 +12,26 @@ const clinicRoutes = require("./src/routes/clinic.routes");
 const app = express();
 
 // ======================================================
+// CORS
+// ======================================================
+
+const corsOptions = {
+  origin: "https://chc-frontend-mauve.vercel.app",
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+
+// Explicit preflight handling
+app.options("*", cors(corsOptions));
+
+// ======================================================
 // GLOBAL MIDDLEWARE
 // ======================================================
 
 app.use(helmet());
-
-app.use(
-  cors({
-    origin: "https://chc-frontend-mauve.vercel.app",
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -44,18 +52,12 @@ app.get("/", (req, res) => {
 // API ROUTES
 // ======================================================
 
-// Authentication
-// /auth/*
 app.use("/auth", authRoutes);
 
-// Patient
-// /patient/*
 app.use("/patient", patientRoutes);
 app.use("/doctor", doctorRoutes);
 app.use("/clinic", clinicRoutes);
 
-// Admin
-// /admin/*
 app.use("/admin", adminRoutes);
 
 // ======================================================
